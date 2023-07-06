@@ -104,6 +104,27 @@ describe('Crowdsale', () => {
         })
     })
 
+    describe('Updating Price', () => {
+
+        let transaction, result
+        let price = ether(2)
+
+        describe('Success', () => {
+            beforeEach(async () => {
+                transaction = await crowdsaleInstance.connect(deployer).setPrice(price)
+                result = await transaction.wait()
+            })
+            it('updates the price', async () => {
+                expect(await crowdsaleInstance.price()).to.equal(price)
+            })
+        })
+
+        describe('Failure', async () => { 
+            await expect(crowdsaleInstance.connect(user1).setPrice(price)).to.be.reverted() 
+        })
+
+    })
+
     describe('Finalizing sale', () => {
         let transaction, result
         let amount = tokens(10)
@@ -131,7 +152,7 @@ describe('Crowdsale', () => {
                 await expect(transaction).to.emit(crowdsaleInstance, "Finalize").withArgs(amount, value)
             })
         })
-        
+
         describe('Failure', () => {
             it('prevents non-owner from finalizing', async () => {
                 await expect(crowdsaleInstance.connect(user1).finalize()).to.be.reverted
