@@ -25,7 +25,7 @@ describe('Crowdsale', () => {
         user1 = accounts[1]
 
         // Deploy CrowdSale
-        crowdsaleInstance = await CrowdsaleContract.deploy(tokenInstance.address, ether(1))
+        crowdsaleInstance = await CrowdsaleContract.deploy(tokenInstance.address, ether(1), '1000000')
 
         // Send tokens to Crowdsale
         let transaction = await tokenInstance.connect(deployer).transfer(crowdsaleInstance.address, tokens(1000000))
@@ -57,7 +57,6 @@ describe('Crowdsale', () => {
                 result = await transaction.wait()
             })
             it('transfers tokens', async () => {
-
                 expect(await tokenInstance.balanceOf(crowdsaleInstance.address)).to.equal(tokens(999990))
                 expect(await tokenInstance.balanceOf(user1.address)).to.equal(amount)
             })
@@ -65,6 +64,11 @@ describe('Crowdsale', () => {
             it('updates contracts ether balance', async () => {
                 expect(await ethers.provider.getBalance(crowdsaleInstance.address)).to.equal(amount)
             })
+
+            it('updates tokenSold', async () => {
+                expect(await crowdsaleInstance.tokensSold()).to.equal(amount)
+            })
+
             it('emits a buy event', async () => {
                 await expect(transaction).to.emit(crowdsaleInstance, 'Buy').withArgs(amount, user1.address)
             })
@@ -76,4 +80,27 @@ describe('Crowdsale', () => {
             })
         })
     })
+
+    describe('Sending ETH', () => {
+        let transaction, result
+        let amount = ether(10)
+    
+        describe('Success', () => {
+    
+          beforeEach(async () => {
+            //send transaction comes from the ethers.js library
+            transaction = await user1.sendTransaction({ to: crowdsaleInstance.address, value: amount })
+            result = await transaction.wait()
+          })
+    
+          it('updates contracts ether balance', async () => {
+            expect(await ethers.provider.getBalance(crowdsaleInstance.address)).to.equal(amount)
+          })
+    
+          it('updates user token balance', async () => {
+            expect(await tokenInstance.balanceOf(user1.address)).to.equal(amount)
+          })
+    
+        })
+      })
 })
