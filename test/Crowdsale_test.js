@@ -84,23 +84,58 @@ describe('Crowdsale', () => {
     describe('Sending ETH', () => {
         let transaction, result
         let amount = ether(10)
-    
+
         describe('Success', () => {
-    
-          beforeEach(async () => {
-            //send transaction comes from the ethers.js library
-            transaction = await user1.sendTransaction({ to: crowdsaleInstance.address, value: amount })
-            result = await transaction.wait()
-          })
-    
-          it('updates contracts ether balance', async () => {
-            expect(await ethers.provider.getBalance(crowdsaleInstance.address)).to.equal(amount)
-          })
-    
-          it('updates user token balance', async () => {
-            expect(await tokenInstance.balanceOf(user1.address)).to.equal(amount)
-          })
-    
+
+            beforeEach(async () => {
+                //send transaction comes from the ethers.js library
+                transaction = await user1.sendTransaction({ to: crowdsaleInstance.address, value: amount })
+                result = await transaction.wait()
+            })
+
+            it('updates contracts ether balance', async () => {
+                expect(await ethers.provider.getBalance(crowdsaleInstance.address)).to.equal(amount)
+            })
+
+            it('updates user token balance', async () => {
+                expect(await tokenInstance.balanceOf(user1.address)).to.equal(amount)
+            })
+
         })
-      })
+    })
+
+    describe('Finalizing sale', () => {
+        let transaction, result
+        let amount = tokens(10)
+        let value = ether(10)
+
+        describe('Success', () => {
+            beforeEach(async () => {
+                transaction = await crowdsaleInstance.connect(user1).buyTokens(amount, { value: value })
+                result = await transaction.wait()
+
+                transaction = await crowdsaleInstance.connect(deployer).finalize()
+                result = await transaction.wait()
+            })
+
+            it('transfers remaining tokens to owner', async () => {
+                expect(await tokenInstance.balanceOf(crowdsaleInstance.address)).to.equal(0)
+                expect(await tokenInstance.balanceOf(deployer.address)).to.equal(tokens(999990))
+            })
+
+            it('transfers ETH balance to owner', async () => {
+                expect(await ethers.provider.getBalance(crowdsaleInstance.address)).to.equal(0)
+            })
+
+            it('emits Finalize event', async () => {
+                await expect(transaction).to.emit(crowdsaleInstance, "Finalize").withArgs(amount, value)
+            })
+        })
+        
+        describe('Failure', () => {
+            it('prevents non-owner from finalizing', async () => {
+                await expect(crowdsaleInstance.connect(user1).finalize()).to.be.reverted
+            })
+        })
+    })
 })

@@ -4,14 +4,17 @@ pragma solidity ^0.8.0;
 import "./Token.sol";
 
 contract Crowdsale {
+    address public owner;
     Token public token;
     uint256 public price;
     uint256 public maxTokens;
     uint256 public tokensSold;
 
     event Buy(uint256 amount, address buyer);
+    event Finalize(uint256 tokensSold, uint256 ethRaised);
 
     constructor(Token _token, uint256 _price, uint256 _maxTokens) {
+        owner = msg.sender;
         token = _token;
         price = _price;
         maxTokens = _maxTokens;
@@ -21,7 +24,6 @@ contract Crowdsale {
         uint256 amount = msg.value / price;
         buyTokens(amount * 1e18);
     }
-    
 
     function buyTokens(uint256 _amount) public payable {
         require(msg.value == (_amount / 1e18) * price);
@@ -35,6 +37,12 @@ contract Crowdsale {
     }
 
     function finalize() public {
-        
+        require(msg.sender == owner);
+        require(token.transfer(owner, token.balanceOf(address(this))));
+        uint256 value = address(this).balance;
+        (bool sent, ) = owner.call{value: value}("");
+        require(sent);
+
+        emit Finalize(tokensSold, value);
     }
 }
