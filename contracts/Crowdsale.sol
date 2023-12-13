@@ -13,6 +13,10 @@ contract Crowdsale {
     event Buy(uint256 amount, address buyer);
     event Finalize(uint256 tokensSold, uint256 ethRaised);
 
+    
+    event Buy(uint256 amount, address buyer);
+    event Finalize(uint256 tokensSold, uint256 ethRaised);
+
     constructor(Token _token, uint256 _price, uint256 _maxTokens) {
         owner = msg.sender;
         token = _token;
@@ -29,6 +33,12 @@ contract Crowdsale {
         uint256 amount = msg.value / price;
         buyTokens(amount * 1e18);
     }
+
+    receive() external payable {
+        uint256 amount = msg.value / price;
+        buyTokens(amount * 1e18);
+    }
+
 
     function buyTokens(uint256 _amount) public payable {
         require(msg.value == (_amount / 1e18) * price);
