@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 
-contract ANthony {
+contract Token {
     string public name;
-    string public symbol;
+    string public symbol; 
     uint256 public decimals = 18;
     uint256 public totalSupply;
 

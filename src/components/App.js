@@ -52,7 +52,7 @@ function App() {
         setAccountBalance(accountBalance)
 
         // Fetch price
-        const price = ethers.utils.formatUnits(await crowdsale.price(), 18)
+        const price = 10000
         setPrice(price)
 
         // Fetch max tokens
@@ -75,7 +75,7 @@ function App() {
     return (
         <Container>
             <Navigation />
-            <h1 className='my-4 text-center'>Introducing DApp Token!</h1>
+            <h1 className='my-4 text-center'>Introducing Anthony Token!</h1>
 
             {isLoading ?
                 (
@@ -83,7 +83,7 @@ function App() {
                 ) : (
                     <>
                         <p><strong>Price: </strong> {price}eth</p>
-                        <Buy provider={provider} price={price} crowdsale={crowdsale} setIsLoading={setIsLoading}/>
+                        <Buy provider={provider} price={price} crowdsale={crowdsale} setIsLoading={setIsLoading} />
                         <Progress maxTokens={maxTokens} tokensSold={tokensSold} />
                     </>
                 )
